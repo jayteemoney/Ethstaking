@@ -2,7 +2,7 @@ import { expect } from "chai";
 import { ethers } from "hardhat";
 import { time } from "@nomicfoundation/hardhat-network-helpers";
 import { SignerWithAddress } from "@nomicfoundation/hardhat-ethers/signers";
-import { FitechToken, EtherStaking } from "../typechain-types";
+import { FitechToken, EtherStaking } from "../typechain-types/contracts"; // Updated import path
 
 describe("EtherStaking", function () {
   let fitechToken: FitechToken;

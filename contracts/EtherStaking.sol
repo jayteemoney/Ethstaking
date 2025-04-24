@@ -6,7 +6,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 
 contract EtherStaking is Ownable {
     IERC20 public fitechToken;
-    uint256 public rewardRate = 10; // 10 tokens rewarded per ETH per staking period
+    uint256 public rewardRate = 10; // 10 tokens per ETH per staking period
     uint256 public stakingPeriod = 30 days;
 
     struct Stake {
@@ -38,8 +38,6 @@ contract EtherStaking is Ownable {
         require(block.timestamp >= userStake.timestamp + stakingPeriod, "Staking period not over");
 
         uint256 reward = calculateReward(userStake.amount, userStake.timestamp);
-        rewards[msg.sender] += reward;
-
         uint256 stakedAmount = userStake.amount;
         delete stakes[msg.sender];
 
@@ -47,8 +45,11 @@ contract EtherStaking is Ownable {
         (bool sent, ) = msg.sender.call{value: stakedAmount}("");
         require(sent, "Failed to send ETH");
 
-        // Transfer Fitech tokens
-        require(fitechToken.transfer(msg.sender, reward), "Token transfer failed");
+        // Transfer Fitech tokens if reward > 0
+        if (reward > 0) {
+            require(fitechToken.balanceOf(address(this)) >= reward, "Insufficient token balance");
+            require(fitechToken.transfer(msg.sender, reward), "Token transfer failed");
+        }
 
         emit Withdrawn(msg.sender, stakedAmount, reward);
     }
@@ -59,6 +60,7 @@ contract EtherStaking is Ownable {
     }
 
     function depositRewardTokens(uint256 amount) external onlyOwner {
+        require(amount > 0, "Amount must be greater than 0");
         require(fitechToken.transferFrom(msg.sender, address(this), amount), "Token transfer failed");
     }
 
